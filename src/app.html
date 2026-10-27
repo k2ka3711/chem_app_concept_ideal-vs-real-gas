@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!--@ARTIFACT-START-->
+<title>理想気体と実在気体</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap">
+<style>
+@font-face {
+  font-family: "TeX Gyre Schola";
+  font-style: italic;
+  font-weight: 400;
+  src: url(data:font/ttf;base64,@SCHOLA_B64@) format("truetype");
+}
+/* Layout: one lab bench per step. A sticky step rail on top; each step is a short question,
+   the molecular model in the middle, and a narrow instrument panel (gauges, switches) beside it. */
+:root {
+  --bg: #f3f6f8;
+  --surface: #ffffff;
+  --ink: #1d2a35;
+  --muted: #5b6977;
+  --line: #d4dde4;
+  --wall: #3a4956;
+  --ideal: #2a6cb0;
+  --real: #157c8b;
+  --attr: #d26a12;
+  --vol: #23905a;
+  --bad: #c0392b;
+  --ideal-soft: #e4eef8;
+  --attr-soft: #fbeee1;
+  --vol-soft: #e1f3e9;
+  --f-body: "BIZ UDPGothic", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+  --f-disp: "Zen Kaku Gothic New", "BIZ UDPGothic", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-num: "Times New Roman", "Liberation Serif", "TeX Gyre Termes", serif;
+  --f-var: "TeX Gyre Schola", "Century Schoolbook", "Times New Roman", serif;
+  --f-chem: Arial, "Liberation Sans", Helvetica, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11171d; --surface: #19222b; --ink: #e3e9ee; --muted: #9babb8; --line: #2b3844; --wall: #b5c3cf;
+    --ideal: #6fa9ec; --real: #4cc0cf; --attr: #f2a256; --vol: #5fcb8e; --bad: #ef7a6b;
+    --ideal-soft: #1b2b3d; --attr-soft: #33261a; --vol-soft: #183126;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11171d; --surface: #19222b; --ink: #e3e9ee; --muted: #9babb8; --line: #2b3844; --wall: #b5c3cf;
+  --ideal: #6fa9ec; --real: #4cc0cf; --attr: #f2a256; --vol: #5fcb8e; --bad: #ef7a6b;
+  --ideal-soft: #1b2b3d; --attr-soft: #33261a; --vol-soft: #183126;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.7;
+}
+button, input { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--ideal); outline-offset: 2px; }
+
+/* typesetting: numbers & units (Times), quantities (Schola italic), formulas (Arial) */
+.n { font-family: var(--f-num); }
+.v { font-family: var(--f-var); font-style: italic; }
+.chem { font-family: var(--f-chem); }
+.op { font-family: var(--f-num); padding: 0 0.18em; }
+sup, sub { font-size: 70%; line-height: 0; position: relative; vertical-align: baseline; }
+sup { top: -0.51em; }
+sub { bottom: -0.21em; }
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 0.15em; line-height: 1.25; }
+.frac > span { padding: 0 0.2em; }
+.frac > span + span { border-top: 1.5px solid currentColor; }
+.eq { white-space: nowrap; }
+
+/* top rail */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.rail {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.rail-in {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.brand { font-family: var(--f-disp); font-weight: 700; font-size: 18px; letter-spacing: 0.02em; white-space: nowrap; }
+.brand b { color: var(--ideal); font-weight: 700; }
+.brand i { color: var(--real); font-style: normal; }
+.steps { display: flex; gap: 4px; flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.steps::-webkit-scrollbar { display: none; }
+.steps button {
+  border: 1px solid var(--line); background: transparent; border-radius: 999px;
+  padding: 2px 12px 2px 4px; cursor: pointer; white-space: nowrap; font-size: 14px; color: var(--muted);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.steps button .k {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg); font-family: var(--f-num); font-size: 14px; color: var(--muted);
+}
+.steps button[aria-current="step"] { border-color: var(--ideal); color: var(--ink); background: var(--ideal-soft); }
+.steps button[aria-current="step"] .k { background: var(--ideal); color: var(--surface); }
+.steps button.done .k { background: var(--ideal-soft); color: var(--ideal); }
+@media (max-width: 760px) {
+  .steps button { padding-right: 4px; }
+  .steps button .t { display: none; }
+  .steps button[aria-current="step"] { padding-right: 12px; }
+  .steps button[aria-current="step"] .t { display: inline; }
+}
+
+main {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 24px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.step { display: flex; flex-direction: column; gap: 20px; }
+.head { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 13px; letter-spacing: 0.12em; color: var(--muted); font-weight: 700; }
+.eyebrow .adv { color: var(--attr); border: 1px solid currentColor; border-radius: 4px; padding: 0 6px; margin-left: 6px; letter-spacing: 0.04em; }
+h2 { font-family: var(--f-disp); font-weight: 700; font-size: clamp(24px, 4vw, 34px); line-height: 1.35; margin: 0; text-wrap: balance; word-break: auto-phrase; }
+.lead { margin: 0; color: var(--muted); max-width: 46em; }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.bench.wide { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+@media (max-width: 820px) { .bench, .bench.wide { grid-template-columns: minmax(0, 1fr); } }
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fig { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fig-label { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.dot.ideal { background: var(--ideal); width: 7px; height: 7px; margin: 0 2.5px; }
+.dot.real { background: var(--real); }
+.dot.attr { background: var(--attr); width: 7px; height: 7px; margin: 0 2.5px; }
+.dot.vol { background: var(--vol); }
+canvas.box { width: 100%; aspect-ratio: 1 / 1; display: block; background: var(--surface); border-radius: 10px; border: 1px solid var(--line); touch-action: manipulation; }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.card h3 { margin: 0; font-family: var(--f-disp); font-size: 16px; font-weight: 700; }
+.rule { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; }
+.rule svg { width: 44px; height: 44px; }
+.rule strong { font-size: 18px; display: block; line-height: 1.4; }
+.rule small { color: var(--muted); font-size: 14px; }
+.big-eq { font-size: 28px; text-align: center; padding: 4px 0; }
+.note { font-size: 14px; color: var(--muted); margin: 0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 12px; font-size: 14px; font-weight: 700; }
+.chip.attr { background: var(--attr-soft); color: var(--attr); }
+.chip.vol { background: var(--vol-soft); color: var(--vol); }
+.chip.ideal { background: var(--ideal-soft); color: var(--ideal); }
+
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; user-select: none; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--ideal); }
+
+/* pressure gauge */
+.gauge { display: grid; grid-template-columns: auto 1fr 3.2em; gap: 8px; align-items: center; font-size: 14px; }
+.g-track { position: relative; height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; border: 1px solid var(--line); }
+.g-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 7px; transition: width 0.6s ease; }
+.g-ref { position: absolute; top: -2px; bottom: -2px; left: calc(100% / 1.4); border-left: 2px dashed var(--muted); }
+.g-val { font-family: var(--f-num); font-size: 20px; text-align: right; font-variant-numeric: tabular-nums; }
+.gauge.ideal .g-fill { background: var(--ideal); }
+.gauge.attr .g-fill { background: var(--attr); }
+.gauge.vol .g-fill { background: var(--vol); }
+
+/* prediction */
+.predict { display: flex; flex-direction: column; gap: 8px; }
+.predict p { margin: 0; font-weight: 700; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices button, .btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; cursor: pointer;
+}
+.choices button:hover, .btn:hover { border-color: var(--ideal); }
+.choices button[aria-pressed="true"] { border-color: var(--ideal); background: var(--ideal-soft); font-weight: 700; }
+.verdict { font-weight: 700; margin: 0; }
+.verdict.ok { color: var(--vol); }
+.verdict.ng { color: var(--attr); }
+.why { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.why li { display: grid; grid-template-columns: 1.4em 1fr; gap: 6px; align-items: baseline; }
+.why li::before { content: "↓"; color: var(--muted); font-weight: 700; text-align: center; }
+.why li:first-child::before { content: "●"; font-size: 12px; }
+.why .res { font-weight: 700; font-size: 18px; }
+.res.down { color: var(--attr); }
+.res.up { color: var(--vol); }
+
+.space-bar { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.space-track { display: flex; height: 18px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.space-free { background: var(--vol-soft); }
+.space-used { background: repeating-linear-gradient(135deg, var(--vol) 0 3px, transparent 3px 7px); }
+
+/* step 5 */
+.ctrl { display: flex; flex-direction: column; gap: 4px; }
+.ctrl-top { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; }
+.ctrl input[type="range"] { width: 100%; accent-color: var(--ideal); }
+.ctrl-ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presets .btn { font-size: 14px; padding: 4px 12px; }
+.zmeter svg { width: 100%; height: auto; display: block; }
+.zread { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.zread .val { font-size: 30px; }
+.zideal { text-align: center; color: var(--ideal); font-weight: 700; font-size: 13px; margin-top: -10px; }
+.zread .state { font-weight: 700; font-size: 15px; text-align: right; }
+.tug { display: grid; grid-template-columns: 1fr 1fr; gap: 0; align-items: center; font-size: 13px; }
+.tug-side { display: flex; flex-direction: column; gap: 2px; }
+.tug-side.l { align-items: flex-end; border-right: 2px solid var(--muted); padding-right: 0; }
+.tug-side.r { align-items: flex-start; }
+.tug-bar { height: 12px; width: 0; transition: width 0.4s ease; }
+.tug-side.l .tug-bar { background: var(--attr); border-radius: 6px 0 0 6px; }
+.tug-side.r .tug-bar { background: var(--vol); border-radius: 0 6px 6px 0; }
+.tug-side.l span { color: var(--attr); padding-right: 6px; font-weight: 700; }
+.tug-side.r span { color: var(--vol); padding-left: 6px; font-weight: 700; }
+.reasons { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 15px; }
+.reasons li { display: flex; gap: 8px; align-items: baseline; }
+.reasons .tag { flex: none; font-size: 13px; font-weight: 700; border-radius: 4px; padding: 0 6px; background: var(--bg); color: var(--muted); }
+
+/* step 6 */
+.formula { font-size: clamp(22px, 3.4vw, 30px); text-align: center; padding: 10px 0 4px; overflow-x: auto; }
+.formula .part-b { color: var(--vol); }
+.formula .part-a { color: var(--attr); }
+.formula .off { opacity: 0.25; text-decoration: line-through; }
+.formula-note { text-align: center; font-weight: 700; min-height: 1.7em; margin: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .two { grid-template-columns: 1fr; } }
+.card.b { border-left: 4px solid var(--vol); }
+.card.a { border-left: 4px solid var(--attr); }
+.chart svg { width: 100%; height: auto; display: block; }
+.plot { position: relative; }
+.ov { position: absolute; white-space: nowrap; font-size: clamp(10px, 2.1vw, 13px); color: var(--muted); line-height: 1.2; pointer-events: none; }
+.chart text { fill: var(--muted); font-size: 13px; font-family: var(--f-body); }
+.chart .axis { stroke: var(--wall); stroke-width: 1.2; fill: none; }
+.chart .grid { stroke: var(--line); stroke-width: 1; fill: none; }
+.chart .ideal-line { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; fill: none; }
+.chart .curve { fill: none; stroke-width: 2.6; stroke-linejoin: round; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.legend button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 2px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
+.legend button[aria-pressed="false"] { opacity: 0.45; }
+.legend i.sw { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.tbl-wrap { overflow-x: auto; }
+table.ab { border-collapse: collapse; font-size: 14px; width: 100%; }
+table.ab th, table.ab td { border-bottom: 1px solid var(--line); padding: 4px 8px; text-align: right; white-space: nowrap; }
+table.ab th:first-child, table.ab td:first-child { text-align: left; }
+table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+
+/* quiz */
+.quiz { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 14px; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.q .qn { font-size: 13px; color: var(--muted); font-weight: 700; letter-spacing: 0.08em; }
+.q p.qt { margin: 0; font-weight: 700; }
+.q .opts { display: flex; flex-direction: column; gap: 6px; }
+.q .opts button { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.q .opts button:hover:not(:disabled) { border-color: var(--ideal); }
+.q .opts button:disabled { cursor: default; }
+.q .opts button.right { border-color: var(--vol); background: var(--vol-soft); font-weight: 700; }
+.q .opts button.wrong { border-color: var(--attr); background: var(--attr-soft); }
+.q .fb { margin: 0; font-size: 15px; }
+.score { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.score .n { font-size: 28px; }
+
+.foot-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; }
+.foot-nav .btn { padding: 10px 18px; font-weight: 700; }
+.foot-nav .btn.primary { background: var(--ideal); color: var(--surface); border-color: var(--ideal); }
+.foot-nav .btn:disabled { visibility: hidden; }
+.colophon { margin-top: 24px; font-size: 13px; color: var(--muted); }
+.colophon p { margin: 0; }
+.ctl-row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<!--@ARTIFACT-HEAD-END-->
+</head>
+<body>
+<!--@ARTIFACT-BODY-START-->
+<div lang="ja">
+<header class="rail">
+  <div class="rail-in">
+    <div class="brand"><b>理想</b>気体と<i>実在</i>気体</div>
+    <nav class="steps" id="steps" aria-label="ステップ">
+      <button type="button" data-go="1"><span class="k">1</span><span class="t">理想気体</span></button>
+      <button type="button" data-go="2"><span class="k">2</span><span class="t">実在気体</span></button>
+      <button type="button" data-go="3"><span class="k">3</span><span class="t">分子間力</span></button>
+      <button type="button" data-go="4"><span class="k">4</span><span class="t">分子の体積</span></button>
+      <button type="button" data-go="5"><span class="k">5</span><span class="t">近づく条件</span></button>
+      <button type="button" data-go="6"><span class="k">6</span><span class="t">発展</span></button>
+      <button type="button" data-go="7"><span class="k">7</span><span class="t">確認</span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- STEP 1 -->
+  <section class="step" data-step="1" aria-labelledby="h1">
+    <div class="head">
+      <div class="eyebrow">STEP 1　理想気体</div>
+      <h2 id="h1">理想気体ってなに？</h2>
+      <p class="lead">状態方程式に、いつでもぴったり従う「理想の」気体です。</p>
+    </div>
+    <div class="bench">
+      <div class="fig">
+        <div class="fig-label"><span class="dot ideal"></span>理想気体の分子モデル</div>
+        <canvas class="box" id="c1" aria-label="理想気体の分子が点のように飛び回り、壁にぶつかるアニメーション"></canvas>
+      </div>
+      <div class="panel">
+        <div class="card">
+          <h3>2つの約束</h3>
+          <div class="rule">
+            <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--ideal-soft)"/><circle cx="22" cy="22" r="3" fill="var(--ideal)"/></svg>
+            <div><strong>分子の体積 ＝ <span class="n">0</span></strong><small>分子を「点」とみなす</small></div>
+          </div>
+          <div class="rule">
+            <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--ideal-soft)"/><circle cx="13" cy="22" r="3" fill="var(--ideal)"/><circle cx="31" cy="22" r="3" fill="var(--ideal)"/><path d="M17 22h10" stroke="var(--muted)" stroke-width="2" stroke-dasharray="2 3"/><path d="M18 16l8 12M26 16l-8 12" stroke="var(--bad)" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <div><strong>分子間力 ＝ <span class="n">0</span></strong><small>分子どうしは引き合わない</small></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="big-eq eq"><i class="v">PV</i><span class="op">=</span><i class="v">nRT</i></div>
+          <p class="note">この2つの約束があると、この式がいつでも成り立ちます。</p>
+        </div>
+        <p class="note">壁が光るところ ＝ 分子が壁にぶつかったところ。<br>このぶつかる勢いが<b>圧力</b>です。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" data-step="2" aria-labelledby="h2" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 2　実在気体</div>
+      <h2 id="h2">実在気体は、どこがちがう？</h2>
+      <p class="lead">実在気体 ＝ 実際にある気体（<span class="chem">H<sub>2</sub></span>、<span class="chem">N<sub>2</sub></span>、<span class="chem">CO<sub>2</sub></span> など）。</p>
+    </div>
+    <div class="bench wide">
+      <div class="pair">
+        <div class="fig">
+          <div class="fig-label"><span class="dot ideal"></span>理想気体</div>
+          <canvas class="box" id="c2a" aria-label="理想気体の分子モデル"></canvas>
+        </div>
+        <div class="fig">
+          <div class="fig-label"><span class="dot real"></span>実在気体</div>
+          <canvas class="box" id="c2b" aria-label="実在気体の分子モデル。分子に大きさがあり、近づくと引き合う"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="card">
+          <h3>実在気体の分子には</h3>
+          <div class="rule">
+            <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--vol-soft)"/><circle cx="22" cy="22" r="10" fill="var(--real)"/></svg>
+            <div><strong style="color:var(--vol)">大きさ（体積）がある</strong></div>
+          </div>
+          <div class="rule">
+            <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--attr-soft)"/><circle cx="13" cy="22" r="6" fill="var(--real)"/><circle cx="31" cy="22" r="6" fill="var(--real)"/><path d="M19 22h6" stroke="var(--attr)" stroke-width="3" stroke-linecap="round"/></svg>
+            <div><strong style="color:var(--attr)">分子間力がはたらく</strong><small>近づくと引き合う</small></div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="t2lines" checked>引き合いを線で表示</label>
+        </div>
+        <div class="card">
+          <h3>では、圧力はどうなる？</h3>
+          <p class="note">2つのちがいを、1つずつ確かめます。</p>
+          <div class="chips"><span class="chip attr">STEP 3　分子間力</span><span class="chip vol">STEP 4　分子の体積</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" data-step="3" aria-labelledby="h3" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 3　分子間力の効果</div>
+      <h2 id="h3">分子間力があると、圧力は？</h2>
+      <p class="lead">分子の数・体積・温度は同じ。分子間力だけを加えます。</p>
+    </div>
+    <div class="bench wide">
+      <div class="pair">
+        <div class="fig">
+          <div class="fig-label"><span class="dot ideal"></span>理想気体</div>
+          <canvas class="box" id="c3a" aria-label="理想気体の分子モデル"></canvas>
+          <div class="gauge ideal"><span>圧力</span><div class="g-track"><div class="g-fill" style="width:calc(100%/1.4)"></div></div><span class="g-val">100</span></div>
+        </div>
+        <div class="fig">
+          <div class="fig-label"><span class="dot attr"></span>分子間力あり</div>
+          <canvas class="box" id="c3b" aria-label="分子間力だけをもつ気体の分子モデル。壁の近くの分子に、内側へ引きもどす力の矢印が出る"></canvas>
+          <div class="gauge attr" id="g3"><span>圧力</span><div class="g-track"><div class="g-fill"></div><div class="g-ref"></div></div><span class="g-val">?</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="card predict" id="p3" data-answer="down">
+          <p>予想：右の圧力は、左とくらべて…</p>
+          <div class="choices">
+            <button type="button" data-pick="up">大きい</button>
+            <button type="button" data-pick="same">同じ</button>
+            <button type="button" data-pick="down">小さい</button>
+          </div>
+        </div>
+        <div class="card" id="r3" hidden>
+          <p class="verdict"></p>
+          <ul class="why">
+            <li><span>壁にぶつかる直前の分子が</span></li>
+            <li><span>うしろの分子に<b style="color:var(--attr)">引きもどされる</b>（矢印）</span></li>
+            <li><span>壁にぶつかる勢いが弱まる</span></li>
+            <li><span class="res down">圧力が小さくなる</span></li>
+          </ul>
+          <label class="toggle"><input type="checkbox" id="t3arrows" checked>引きもどす力を矢印で表示</label>
+        </div>
+        <p class="note">圧力は、理想気体を <span class="n">100</span> としたときの値です。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step" data-step="4" aria-labelledby="h4" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 4　分子の体積の効果</div>
+      <h2 id="h4">分子に体積があると、圧力は？</h2>
+      <p class="lead">こんどは分子の大きさだけを加えます（分子間力はなし）。</p>
+    </div>
+    <div class="bench wide">
+      <div class="pair">
+        <div class="fig">
+          <div class="fig-label"><span class="dot ideal"></span>理想気体</div>
+          <canvas class="box" id="c4a" aria-label="理想気体の分子モデル"></canvas>
+          <div class="gauge ideal"><span>圧力</span><div class="g-track"><div class="g-fill" style="width:calc(100%/1.4)"></div></div><span class="g-val">100</span></div>
+        </div>
+        <div class="fig">
+          <div class="fig-label"><span class="dot vol"></span>分子の体積あり</div>
+          <canvas class="box" id="c4b" aria-label="大きさをもつ分子のモデル。ほかの分子が入れない場所を緑で表示"></canvas>
+          <div class="gauge vol" id="g4"><span>圧力</span><div class="g-track"><div class="g-fill"></div><div class="g-ref"></div></div><span class="g-val">?</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="card predict" id="p4" data-answer="up">
+          <p>予想：右の圧力は、左とくらべて…</p>
+          <div class="choices">
+            <button type="button" data-pick="up">大きい</button>
+            <button type="button" data-pick="same">同じ</button>
+            <button type="button" data-pick="down">小さい</button>
+          </div>
+        </div>
+        <div class="card" id="r4" hidden>
+          <p class="verdict"></p>
+          <ul class="why">
+            <li><span>分子どうしがじゃまをして</span></li>
+            <li><span><b style="color:var(--vol)">動ける空間がせまい</b>（緑は入れない場所）</span></li>
+            <li><span>壁にぶつかる回数がふえる</span></li>
+            <li><span class="res up">圧力が大きくなる</span></li>
+          </ul>
+          <div class="space-bar">
+            <span>動ける空間（容器の体積 ＝ <span class="n">100</span>）</span>
+            <div class="space-track"><div class="space-free" id="free4"></div><div class="space-used" id="used4"></div></div>
+            <span id="free4txt"></span>
+          </div>
+          <label class="toggle"><input type="checkbox" id="t4excl" checked>入れない場所を表示</label>
+        </div>
+        <p class="note">圧力は、理想気体を <span class="n">100</span> としたときの値です。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step" data-step="5" aria-labelledby="h5" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 5　理想気体に近づく条件</div>
+      <h2 id="h5">どんなとき、実在気体は理想気体に近づく？</h2>
+      <p class="lead"><span class="eq"><i class="v">Z</i><span class="op">=</span><span class="frac"><span><i class="v">PV</i></span><span><i class="v">nRT</i></span></span></span> で「理想気体からのずれ」を測ります。理想気体なら <span class="eq"><i class="v">Z</i><span class="op">=</span><span class="n">1</span></span> です。</p>
+    </div>
+    <div class="bench">
+      <div class="fig">
+        <div class="fig-label"><span class="dot real"></span>実在気体の分子モデル<span class="note" id="view5" style="margin-left:auto;font-weight:400"></span></div>
+        <canvas class="box" id="c5" aria-label="実在気体の分子モデル。温度と圧力を変えられる"></canvas>
+      </div>
+      <div class="panel">
+        <div class="card">
+          <div class="ctrl">
+            <div class="ctrl-top"><label for="sT">温度</label><span id="sTv" class="note"></span></div>
+            <input type="range" id="sT" min="0" max="100" value="40">
+            <div class="ctrl-ends"><span>低温（遅い）</span><span>高温（速い）</span></div>
+          </div>
+          <div class="ctrl">
+            <div class="ctrl-top"><label for="sP">圧力（おしちぢめる）</label><span id="sPv" class="note"></span></div>
+            <input type="range" id="sP" min="0" max="100" value="65">
+            <div class="ctrl-ends"><span>低圧（すかすか）</span><span>高圧（ぎっしり）</span></div>
+          </div>
+          <div class="presets">
+            <button type="button" class="btn" data-preset="hl">高温・低圧</button>
+            <button type="button" class="btn" data-preset="lh">低温・高圧</button>
+            <button type="button" class="btn" data-preset="hh">高温・高圧</button>
+          </div>
+        </div>
+        <div class="card zmeter">
+          <div class="zread"><span><i class="v">Z</i><span class="op">=</span><span class="n val" id="zval">—</span></span><span class="state" id="zstate">測定中…</span></div>
+          <svg id="zsvg" viewBox="0 0 320 62" aria-hidden="true"></svg>
+          <div class="zideal">理想気体</div>
+          <div class="tug" aria-label="2つの効果のつなひき">
+            <div class="tug-side l"><div class="tug-bar" id="tugA"></div><span>分子間力</span></div>
+            <div class="tug-side r"><div class="tug-bar" id="tugB"></div><span>分子の体積</span></div>
+          </div>
+          <p class="note" style="text-align:center">分子間力は <i class="v">Z</i> を下げ、分子の体積は <i class="v">Z</i> を上げる</p>
+        </div>
+        <div class="card">
+          <ul class="reasons" id="reasons"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 6 -->
+  <section class="step" data-step="6" aria-labelledby="h6" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 6<span class="adv">発展</span></div>
+      <h2 id="h6">ファンデルワールスの状態方程式</h2>
+      <p class="lead">2つの効果を、理想気体の式に組みこみます。</p>
+    </div>
+    <div class="card">
+      <div class="formula" id="formula" aria-live="polite"></div>
+      <p class="formula-note" id="formulaNote"></p>
+      <div class="ctl-row" style="justify-content:center">
+        <label class="toggle"><input type="checkbox" id="fb" checked><span style="color:var(--vol);font-weight:700">分子の体積</span>（<i class="v">b</i>）</label>
+        <label class="toggle"><input type="checkbox" id="fa" checked><span style="color:var(--attr);font-weight:700">分子間力</span>（<i class="v">a</i>）</label>
+      </div>
+    </div>
+    <div class="two">
+      <div class="card b">
+        <h3><span class="eq"><i class="v">V</i><span class="op">−</span><i class="v">nb</i></span>　動ける空間</h3>
+        <p class="note">分子の体積の分だけ、動ける空間がせまい → 圧力は<b style="color:var(--vol)">大きく</b>なる。<br><i class="v">b</i>：分子の大きさで決まる定数</p>
+      </div>
+      <div class="card a">
+        <h3><span class="eq"><span class="op">−</span><i class="v">a</i><span class="frac"><span><i class="v">n</i><sup class="n">2</sup></span><span><i class="v">V</i><sup class="n">2</sup></span></span></span>　引きもどしの分</h3>
+        <p class="note">壁にぶつかる分子の数（<i class="v">n</i>/<i class="v">V</i>）× 引きもどす分子の数（<i class="v">n</i>/<i class="v">V</i>）→ 圧力は<b style="color:var(--attr)">小さく</b>なる。<br><i class="v">a</i>：分子間力の強さで決まる定数</p>
+      </div>
+    </div>
+    <div class="bench wide">
+      <div class="card chart">
+        <h3>実在気体の <i class="v">Z</i> と圧力（計算値）</h3>
+        <div class="plot">
+          <svg id="chart" viewBox="0 0 640 400" role="img" aria-label="水素、窒素、メタン、二酸化炭素の Z と圧力のグラフ"></svg>
+          <div id="chartOv"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="panel">
+        <div class="card">
+          <div class="ctrl">
+            <div class="ctrl-top"><label for="sK">温度</label><span id="sKv"></span></div>
+            <input type="range" id="sK" min="250" max="800" step="1" value="273">
+            <div class="ctrl-ends"><span class="n">250 K</span><span class="n">800 K</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>見どころ</h3>
+          <ul class="reasons">
+            <li><span class="tag">低圧</span>どの気体も <i class="v">Z</i> ≈ <span class="n">1</span></li>
+            <li><span class="tag" style="color:var(--attr)">へこむ</span><i class="v">a</i> が大きい気体ほど、1 より下に大きくずれる</li>
+            <li><span class="tag" style="color:var(--vol)">上がる</span>もっと高圧では、体積の効果が勝つ</li>
+            <li><span class="tag">高温</span>温度を上げると、へこみが小さくなる</li>
+          </ul>
+        </div>
+        <div class="card tbl-wrap">
+          <table class="ab">
+            <thead><tr><th>気体</th><th><i class="v">a</i> [Pa·m<sup>6</sup>/mol<sup>2</sup>]</th><th><i class="v">b</i> [×10<sup>−5</sup> m<sup>3</sup>/mol]</th></tr></thead>
+            <tbody id="abBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 7 -->
+  <section class="step" data-step="7" aria-labelledby="h7" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 7　確認</div>
+      <h2 id="h7">たしかめよう</h2>
+      <p class="lead">答えを選ぶと、すぐに解説が出ます。</p>
+    </div>
+    <div class="quiz" id="quiz"></div>
+    <div class="score"><span>正解</span><span class="n" id="score">0 / 0</span><button type="button" class="btn" id="retry">やり直す</button></div>
+  </section>
+
+  <nav class="foot-nav" aria-label="前後のステップ">
+    <button type="button" class="btn" id="prev">← 前へ</button>
+    <button type="button" class="btn primary" id="next">次へ →</button>
+  </nav>
+  <div class="colophon">
+    <p>分子モデルは平面（2次元）のシミュレーションです。圧力と <i class="v">Z</i> はモデルの分子の運動から計算しています。STEP 6 のグラフは、ファンデルワールスの式による計算値です（<i class="v">a</i>, <i class="v">b</i> は CRC Handbook of Chemistry and Physics の値）。</p>
+  </div>
+</main>
+</div>
+
+<script>
+/*@ENGINE*/
+/*@VDW*/
+</script>
+<script>
+(() => {
+  document.documentElement.lang = "ja";
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+  // ---------- theme colors for canvas ----------
+  const COL = {};
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["surface", "ink", "muted", "line", "wall", "ideal", "real", "attr", "vol", "bg"]) COL[k] = cs.getPropertyValue("--" + k).trim();
+  }
+  readColors();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  function rgba(hex, a) {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+
+  // ---------- a canvas that shows one simulation ----------
+  const SIM_SPEED = 90; // sim time units per real second
+  class SimView {
+    constructor(id, simOpts, look) {
+      this.canvas = document.getElementById(id);
+      this.ctx = this.canvas.getContext("2d");
+      this.sim = createSim(simOpts);
+      this.look = Object.assign({ color: "ideal", Rv: simOpts.R || 3.5, lines: false, arrows: false, excl: false, view: null }, look);
+      this.blocks = []; this.clock = 0; this.maxBlocks = look.maxBlocks || 0;
+      this.onBlock = null;
+    }
+    resize() {
+      const w = this.canvas.clientWidth;
+      if (!w) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.canvas.width = Math.round(w * dpr); this.canvas.height = Math.round(w * dpr);
+      this.cssW = w; this.dpr = dpr;
+    }
+    resetMeasure() { this.sim.takeBlock(); this.blocks = []; this.clock = 0; }
+    tick(dtReal) {
+      const total = SIM_SPEED * dtReal;
+      const steps = Math.min(60, Math.max(1, Math.ceil(total / 0.25)));
+      const dt = total / steps;
+      for (let k = 0; k < steps; k++) this.sim.step(dt, true);
+      const hits = this.sim.hits;
+      for (const h of hits) h.age += dtReal;
+      this.sim.hits = hits.filter(h => h.age < 0.35);
+      this.clock += dtReal;
+      if (this.clock >= 0.5) {
+        this.clock = 0;
+        this.blocks.push(this.sim.takeBlock());
+        if (this.maxBlocks && this.blocks.length > this.maxBlocks) this.blocks.shift();
+        this.onBlock && this.onBlock(this);
+      }
+    }
+    z() { return this.sim.zVirFrom(this.blocks); }
+    draw() {
+      const { ctx, sim, look } = this;
+      if (!this.cssW) this.resize();
+      if (!this.cssW) return;
+      const W = this.cssW, dpr = this.dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = COL.surface; ctx.fillRect(0, 0, W, W);
+      const Rv = look.Rv, pad = 8;
+      // scale: whole box fits, or a fixed window (step 5) so molecules keep their size
+      const span = look.view || (sim.W + 2 * Rv);
+      const s = (W - 2 * pad) / span;
+      const boxW = (sim.W + 2 * Rv) * s, boxH = (sim.H + 2 * Rv) * s;
+      const ox = (W - boxW) / 2, oy = (W - boxH) / 2;
+      const X = (x) => ox + (x + Rv) * s, Y = (y) => oy + (y + Rv) * s;
+      const r = Math.max(look.minPx || 0, Rv * s);
+      const col = COL[look.color];
+      // wall
+      ctx.lineWidth = 3; ctx.strokeStyle = COL.wall;
+      ctx.strokeRect(ox - 1.5, oy - 1.5, boxW + 3, boxH + 3);
+      if (look.view) { // fade the edge so a cut-off box reads as "part of a bigger box"
+        const g = (dir) => { const gr = ctx.createLinearGradient(...dir); gr.addColorStop(0, rgba(COL.surface, 1)); gr.addColorStop(1, rgba(COL.surface, 0)); return gr; };
+        const f = 18;
+        ctx.fillStyle = g([0, 0, f, 0]); ctx.fillRect(0, 0, f, W);
+        ctx.fillStyle = g([W, 0, W - f, 0]); ctx.fillRect(W - f, 0, f, W);
+        ctx.fillStyle = g([0, 0, 0, f]); ctx.fillRect(0, 0, W, f);
+        ctx.fillStyle = g([0, W, 0, W - f]); ctx.fillRect(0, W - f, W, f);
+      }
+      const { x, y, N } = sim;
+      // excluded zones
+      if (look.excl) {
+        ctx.fillStyle = rgba(COL.vol, 0.13);
+        for (let i = 0; i < N; i++) { ctx.beginPath(); ctx.arc(X(x[i]), Y(y[i]), 2 * sim.R * s, 0, 7); ctx.fill(); }
+      }
+      // attraction lines
+      if (look.lines && sim.attract) {
+        const r0 = 2 * sim.R, rc = r0 + sim.range;
+        ctx.lineWidth = Math.max(1, 1.6 * s); ctx.lineCap = "round";
+        for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) {
+          const dx = x[j] - x[i], dy = y[j] - y[i], d = Math.hypot(dx, dy);
+          if (d >= rc) continue;
+          const a = 0.75 * Math.min(1, (rc - d) / sim.range);
+          ctx.strokeStyle = rgba(COL.attr, a);
+          ctx.beginPath(); ctx.moveTo(X(x[i]), Y(y[i])); ctx.lineTo(X(x[j]), Y(y[j])); ctx.stroke();
+        }
+      }
+      // molecules
+      ctx.fillStyle = col;
+      for (let i = 0; i < N; i++) { ctx.beginPath(); ctx.arc(X(x[i]), Y(y[i]), r, 0, 7); ctx.fill(); }
+      if (r > 5) {
+        ctx.fillStyle = rgba("#ffffff", 0.35);
+        for (let i = 0; i < N; i++) { ctx.beginPath(); ctx.arc(X(x[i]) - r * 0.32, Y(y[i]) - r * 0.32, r * 0.32, 0, 7); ctx.fill(); }
+      }
+      // pull-back arrows near the walls
+      if (look.arrows && sim.attract) {
+        const near = sim.range + 2 * sim.R;
+        ctx.strokeStyle = COL.attr; ctx.fillStyle = COL.attr; ctx.lineWidth = 2;
+        for (let i = 0; i < N; i++) {
+          const dw = Math.min(x[i], y[i], sim.W - x[i], sim.H - y[i]);
+          if (dw > near) continue;
+          const f = Math.hypot(sim.fx[i], sim.fy[i]);
+          if (f < 0.004) continue;
+          const len = Math.min(26, Math.max(7, f * 700)) * (W / 360);
+          const ux = sim.fx[i] / f, uy = sim.fy[i] / f;
+          const x0 = X(x[i]), y0 = Y(y[i]), x1 = x0 + ux * len, y1 = y0 + uy * len;
+          ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+          const hx = -uy * 3.5, hy = ux * 3.5;
+          ctx.beginPath(); ctx.moveTo(x1 + ux * 4, y1 + uy * 4); ctx.lineTo(x1 + hx, y1 + hy); ctx.lineTo(x1 - hx, y1 - hy); ctx.closePath(); ctx.fill();
+        }
+      }
+      // wall hits: a short bright mark on the wall, longer for a harder hit
+      ctx.lineCap = "round";
+      for (const h of sim.hits) {
+        const a = 1 - h.age / 0.35;
+        const len = (4 + h.s * 5) * (W / 360);
+        ctx.strokeStyle = rgba(col, a * 0.9); ctx.lineWidth = 4;
+        let hx, hy, horiz;
+        if (h.x <= 0) { hx = ox - 1.5; hy = Y(h.y); horiz = false; }
+        else if (h.x >= sim.W) { hx = ox + boxW + 1.5; hy = Y(h.y); horiz = false; }
+        else if (h.y <= 0) { hx = X(h.x); hy = oy - 1.5; horiz = true; }
+        else { hx = X(h.x); hy = oy + boxH + 1.5; horiz = true; }
+        ctx.beginPath();
+        if (horiz) { ctx.moveTo(hx - len / 2, hy); ctx.lineTo(hx + len / 2, hy); }
+        else { ctx.moveTo(hx, hy - len / 2); ctx.lineTo(hx, hy + len / 2); }
+        ctx.stroke();
+      }
+    }
+  }
+
+  // ---------- the simulations of each step ----------
+  const B = 400;
+  const views = {
+    c1: new SimView("c1", { N: 40, W: B, H: B, R: 0, seed: 11 }, { color: "ideal", Rv: 3.5, minPx: 2.5 }),
+    c2a: new SimView("c2a", { N: 40, W: B, H: B, R: 0, seed: 12 }, { color: "ideal", Rv: 3.5, minPx: 2 }),
+    c2b: new SimView("c2b", { N: 40, W: B, H: B, R: 10, attract: true, eps: 1, range: 16, seed: 13 }, { color: "real", lines: true }),
+    c3a: new SimView("c3a", { N: 50, W: B, H: B, R: 0, seed: 14 }, { color: "ideal", Rv: 3.5, minPx: 2 }),
+    c3b: new SimView("c3b", { N: 50, W: B, H: B, R: 3, attract: true, eps: 0.5, range: 30, seed: 15 }, { color: "attr", Rv: 3.5, minPx: 2, lines: true, arrows: true, maxBlocks: 60 }),
+    c4a: new SimView("c4a", { N: 50, W: B, H: B, R: 0, seed: 16 }, { color: "ideal", Rv: 3.5, minPx: 2 }),
+    c4b: new SimView("c4b", { N: 50, W: B, H: B, R: 10, seed: 17 }, { color: "vol", excl: true, maxBlocks: 60 }),
+    c5: new SimView("c5", { N: 60, W: 500, H: 500, R: 8, attract: true, eps: 1, range: 16, seed: 18 }, { color: "real", lines: true, view: 540, maxBlocks: 16 }),
+  };
+  const STEP_VIEWS = { 1: ["c1"], 2: ["c2a", "c2b"], 3: ["c3a", "c3b"], 4: ["c4a", "c4b"], 5: ["c5"] };
+
+  // ---------- navigation ----------
+  const TOTAL = 7;
+  let current = 1;
+  const visited = new Set([1]);
+  function go(n, push = true) {
+    n = Math.max(1, Math.min(TOTAL, n));
+    current = n; visited.add(n);
+    $$(".step").forEach(s => { s.hidden = Number(s.dataset.step) !== n; });
+    $$("#steps button").forEach(b => {
+      const k = Number(b.dataset.go);
+      b.toggleAttribute("aria-current", k === n);
+      if (k === n) b.setAttribute("aria-current", "step");
+      b.classList.toggle("done", visited.has(k) && k !== n);
+    });
+    $("#prev").disabled = n === 1;
+    $("#next").disabled = n === TOTAL;
+    $("#steps button[aria-current]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    for (const id of STEP_VIEWS[n] || []) views[id].resize();
+    if (n === 6) drawChart();
+    if (push && location.hash !== "#s" + n) history.replaceState(null, "", "#s" + n);
+    window.scrollTo({ top: 0 });
+  }
+  $("#steps").addEventListener("click", e => { const b = e.target.closest("button[data-go]"); if (b) go(Number(b.dataset.go)); });
+  $("#prev").addEventListener("click", () => go(current - 1));
+  $("#next").addEventListener("click", () => go(current + 1));
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input, textarea")) return;
+    if (e.key === "ArrowRight") go(current + 1);
+    if (e.key === "ArrowLeft") go(current - 1);
+  });
+  window.addEventListener("hashchange", () => { const m = location.hash.match(/^#s(\d)$/); if (m) go(Number(m[1]), false); });
+  window.addEventListener("resize", () => { for (const id of STEP_VIEWS[current] || []) views[id].resize(); });
+
+  // ---------- STEP 2 ----------
+  $("#t2lines").addEventListener("change", e => { views.c2b.look.lines = e.target.checked; });
+
+  // ---------- STEP 3 & 4: predict, then measure ----------
+  function setupPredict(stepKey, view, gaugeId, resultId) {
+    const card = $("#" + stepKey), result = $("#" + resultId), gauge = $("#" + gaugeId);
+    const answer = card.dataset.answer;
+    let revealed = false;
+    view.onBlock = (v) => {
+      if (!revealed) return;
+      const z = v.z();
+      if (z == null || v.blocks.length < 3) return;
+      const val = Math.round(z * 100);
+      gauge.querySelector(".g-val").textContent = val;
+      gauge.querySelector(".g-fill").style.width = Math.min(100, val / 1.4) + "%";
+    };
+    card.addEventListener("click", e => {
+      const b = e.target.closest("button[data-pick]");
+      if (!b) return;
+      $$("button[data-pick]", card).forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      const ok = b.dataset.pick === answer;
+      const vd = $(".verdict", result);
+      vd.textContent = ok ? "予想どおり！" : "じつは…";
+      vd.className = "verdict " + (ok ? "ok" : "ng");
+      result.hidden = false;
+      if (!revealed) { revealed = true; view.resetMeasure(); gauge.querySelector(".g-val").textContent = "…"; }
+    });
+  }
+  setupPredict("p3", views.c3b, "g3", "r3");
+  setupPredict("p4", views.c4b, "g4", "r4");
+  views.c3b.look.arrows = false; // arrows appear after the prediction
+  $("#p3").addEventListener("click", () => { views.c3b.look.arrows = $("#t3arrows").checked; });
+  $("#t3arrows").addEventListener("change", e => { views.c3b.look.arrows = e.target.checked; });
+  views.c4b.look.excl = false;
+  $("#p4").addEventListener("click", () => { views.c4b.look.excl = $("#t4excl").checked; });
+  $("#t4excl").addEventListener("change", e => { views.c4b.look.excl = e.target.checked; });
+  // free space: each molecule shuts other centers out of half the disk of radius 2R
+  (() => {
+    const s = views.c4b.sim;
+    const used = s.N * 2 * Math.PI * s.R * s.R / (s.W * s.H) * 100;
+    $("#free4").style.width = (100 - used) + "%";
+    $("#used4").style.width = used + "%";
+    $("#free4txt").innerHTML = `<span class="n">100</span> → <span class="n">${Math.round(100 - used)}</span>　（この分だけ、せまい）`;
+  })();
+
+  // ---------- STEP 5 ----------
+  const c5 = views.c5;
+  const T_MIN = 0.35, T_MAX = 3, L_MAX = 1600, L_MIN = 185;
+  const kTof = v => T_MIN * Math.pow(T_MAX / T_MIN, v / 100);
+  const Lof = v => L_MAX * Math.pow(L_MIN / L_MAX, v / 100);
+  let targetL = Lof(Number($("#sP").value)), settle = 0, zShown = null;
+  c5.sim.kT = kTof(Number($("#sT").value));
+  c5.sim.setBox(targetL, targetL);
+  // second virial coefficient pieces for the tug of war: Z ≈ 1 + n b − n a / kT
+  const s5 = c5.sim;
+  const b2 = 2 * Math.PI * s5.R * s5.R;
+  const a2 = Math.PI * s5.eps * s5.range * (2 * s5.R * 8 / 15 + s5.range / 6);
+  function paramsChanged() { settle = 2; c5.resetMeasure(); $("#zstate").textContent = "測定中…"; }
+  $("#sT").addEventListener("input", e => { s5.kT = kTof(Number(e.target.value)); paramsChanged(); updateLabels5(); });
+  $("#sP").addEventListener("input", e => { targetL = Lof(Number(e.target.value)); paramsChanged(); updateLabels5(); });
+  const PRESETS = { hl: [100, 0], lh: [12, 88], hh: [100, 100] };
+  $$("[data-preset]").forEach(b => b.addEventListener("click", () => {
+    const [t, p] = PRESETS[b.dataset.preset];
+    $("#sT").value = t; $("#sP").value = p;
+    s5.kT = kTof(t); targetL = Lof(p); paramsChanged(); updateLabels5();
+  }));
+  function level(v) { return v < 34 ? 0 : v > 66 ? 2 : 1; }
+  function updateLabels5() {
+    const t = Number($("#sT").value), p = Number($("#sP").value);
+    $("#sTv").textContent = ["低温", "ふつう", "高温"][level(t)];
+    $("#sPv").textContent = ["低圧", "ふつう", "高圧"][level(p)];
+    const n = s5.N / (targetL * targetL);
+    const vol = n * b2, att = n * a2 / s5.kT;
+    $("#tugB").style.width = (100 * vol / (vol + 0.4)) + "%";
+    $("#tugA").style.width = (100 * att / (att + 0.4)) + "%";
+    updateReasons();
+  }
+  function updateReasons() {
+    const t = level(Number($("#sT").value)), p = level(Number($("#sP").value));
+    const items = [];
+    if (t === 2) items.push(["高温", "分子が速い → 分子間力をふり切る"]);
+    if (t === 0) items.push(["低温", "分子が遅い → 分子間力につかまる"]);
+    if (p === 0) items.push(["低圧", "分子どうしが遠い → 分子の体積も分子間力も効かない"]);
+    if (p === 2) items.push(["高圧", "分子がぎっしり → 分子の体積も分子間力も効く"]);
+    if (zShown != null && zShown < 0.6 && t === 0) items.push(["凝縮", "分子が集まって、液体になりかけている"]);
+    if (!items.length) items.push(["", "温度や圧力を変えて、Z を 1 に近づけてみよう"]);
+    $("#reasons").innerHTML = items.map(([k, v]) => `<li>${k ? `<span class="tag">${k}</span>` : ""}<span>${v.replace("Z", '<i class="v">Z</i>').replace(" 1 ", ' <span class="n">1</span> ')}</span></li>`).join("");
+  }
+  // Z meter
+  const ZMAX = 2;
+  function zx(z) { return 20 + 280 * Math.max(0, Math.min(ZMAX, z)) / ZMAX; }
+  function drawZMeter() {
+    const svg = $("#zsvg");
+    let ticks = "";
+    for (let k = 0; k <= 4; k++) {
+      const z = k * 0.5, x = zx(z);
+      ticks += `<line x1="${x}" y1="34" x2="${x}" y2="${k % 2 ? 40 : 44}" stroke="var(--muted)" stroke-width="1"/>`;
+      if (k % 2 === 0) ticks += `<text x="${x}" y="58" text-anchor="middle" font-family="var(--f-num)" font-size="14" fill="var(--muted)">${z}</text>`;
+    }
+    svg.innerHTML = `
+      <rect x="20" y="22" width="140" height="12" rx="3" fill="var(--attr-soft)"/>
+      <rect x="160" y="22" width="140" height="12" rx="3" fill="var(--vol-soft)"/>
+      <line x1="160" y1="16" x2="160" y2="40" stroke="var(--ideal)" stroke-width="2"/>
+      ${ticks}
+      <g id="zneedle"><path d="M0 18 L-6 6 L6 6 Z" fill="var(--ink)"/><line x1="0" y1="18" x2="0" y2="36" stroke="var(--ink)" stroke-width="2"/></g>`;
+    $("#zneedle").setAttribute("transform", `translate(${zx(1)} 0)`);
+  }
+  drawZMeter();
+  let needleX = zx(1);
+  c5.onBlock = (v) => {
+    if (settle > 0) { settle--; if (settle === 0) v.resetMeasure(); return; }
+    const z = v.z();
+    if (z == null || v.blocks.length < 2) return;
+    zShown = z;
+    $("#zval").textContent = z.toFixed(2);
+    const st = $("#zstate"), zr = Math.round(z * 100) / 100;
+    if (Math.abs(zr - 1) < 0.05) { st.textContent = "ほぼ理想気体"; st.style.color = "var(--ideal)"; }
+    else if (zr < 1) { st.textContent = "分子間力の効果が大きい"; st.style.color = "var(--attr)"; }
+    else { st.textContent = "分子の体積の効果が大きい"; st.style.color = "var(--vol)"; }
+    updateReasons();
+  };
+  updateLabels5();
+
+  // ---------- STEP 6: van der Waals ----------
+  function renderFormula() {
+    const useB = $("#fb").checked, useA = $("#fa").checked;
+    const V = '<i class="v">V</i>';
+    const den = useB ? `${V}<span class="op part-b">−</span><i class="v part-b">nb</i>` : `${V}<span class="off part-b"><span class="op">−</span><i class="v">nb</i></span>`;
+    const aTerm = `<span class="part-a${useA ? "" : " off"}"><span class="op">−</span><i class="v">a</i><span class="frac"><span><i class="v">n</i><sup class="n">2</sup></span><span><i class="v">V</i><sup class="n">2</sup></span></span></span>`;
+    $("#formula").innerHTML = `<span class="eq"><i class="v">P</i><span class="op">=</span><span class="frac"><span><i class="v">nRT</i></span><span>${den}</span></span>${aTerm}</span>`;
+    const note = $("#formulaNote");
+    if (!useA && !useB) note.innerHTML = `→ <span class="eq"><i class="v">PV</i><span class="op">=</span><i class="v">nRT</i></span>（理想気体の状態方程式）`;
+    else if (useA && useB) note.innerHTML = `変形すると <span class="eq">(<i class="v">P</i><span class="op">+</span><i class="v">a</i><span class="frac"><span><i class="v">n</i><sup class="n">2</sup></span><span><i class="v">V</i><sup class="n">2</sup></span></span>)(<i class="v">V</i><span class="op">−</span><i class="v">nb</i>)<span class="op">=</span><i class="v">nRT</i></span>`;
+    else note.textContent = "スイッチを両方切ると、理想気体の式にもどります。";
+  }
+  $("#fa").addEventListener("change", renderFormula);
+  $("#fb").addEventListener("change", renderFormula);
+  renderFormula();
+
+  const GAS_STYLE = {
+    H2: { name: '<span class="chem">H<sub>2</sub></span>', color: "var(--ideal)" },
+    N2: { name: '<span class="chem">N<sub>2</sub></span>', color: "var(--vol)" },
+    CH4: { name: '<span class="chem">CH<sub>4</sub></span>', color: "var(--real)" },
+    CO2: { name: '<span class="chem">CO<sub>2</sub></span>', color: "var(--attr)" },
+  };
+  const shown = { H2: true, N2: true, CH4: true, CO2: true };
+  $("#legend").innerHTML = GASES.map(g => `<button type="button" data-gas="${g.id}" aria-pressed="true"><i class="sw" style="background:${GAS_STYLE[g.id].color}"></i>${GAS_STYLE[g.id].name}</button>`).join("");
+  $("#legend").addEventListener("click", e => {
+    const b = e.target.closest("button[data-gas]"); if (!b) return;
+    shown[b.dataset.gas] = !shown[b.dataset.gas];
+    b.setAttribute("aria-pressed", String(shown[b.dataset.gas]));
+    drawChart();
+  });
+  $("#abBody").innerHTML = GASES.map(g => `<tr><td>${GAS_STYLE[g.id].name}</td><td>${(g.a * 0.1).toFixed(3)}</td><td>${(g.b * 100).toFixed(2)}</td></tr>`).join("");
+  $("#sK").addEventListener("input", drawChart);
+  const PMAX = 1e8, ZTOP = 2.5;
+  function drawChart() {
+    const T = Number($("#sK").value);
+    $("#sKv").innerHTML = `<span class="n">${T} K</span>（<span class="n">${T - 273}</span> <span class="n">°C</span>）`;
+    const L = 56, R = 620, TOP = 20, BOT = 350;
+    const px = p => L + (R - L) * p / PMAX, py = z => BOT - (BOT - TOP) * z / ZTOP;
+    let g = "";
+    for (let k = 0; k <= 10; k += 2) {
+      g += `<line class="grid" x1="${px(k * 1e7)}" y1="${TOP}" x2="${px(k * 1e7)}" y2="${BOT}"/>`;
+      g += `<text x="${px(k * 1e7)}" y="${BOT + 20}" text-anchor="middle" font-family="var(--f-num)" font-size="17">${k}</text>`;
+    }
+    for (let k = 0; k <= 5; k++) {
+      const z = k * 0.5;
+      g += `<line class="grid" x1="${L}" y1="${py(z)}" x2="${R}" y2="${py(z)}"/>`;
+      g += `<text x="${L - 8}" y="${py(z) + 5}" text-anchor="end" font-family="var(--f-num)" font-size="17">${z.toFixed(1)}</text>`;
+    }
+    g += `<path class="axis" d="M${L} ${TOP} V${BOT} H${R}"/>`;
+    g += `<line class="ideal-line" x1="${L}" y1="${py(1)}" x2="${R}" y2="${py(1)}"/>`;
+    const at = (x, y, tx, ty, html, style = "") => `<div class="ov" style="left:${x / 6.4}%;top:${y / 4}%;transform:translate(${tx}%,${ty}%);${style}">${html}</div>`;
+    let ov = at(R - 4, py(1) - 4, -100, -100, '理想気体（<i class="v">Z</i> = <span class="n">1</span>）', "font-weight:700");
+    ov += at((L + R) / 2, BOT + 26, -50, 0, '圧力 <i class="v">P</i> [<span class="n">×10<sup>7</sup> Pa</span>]');
+    g += `<text x="${L + 8}" y="${TOP + 6}" font-family="var(--f-var)" font-style="italic" font-size="17">Z</text>`;
+    for (const gas of GASES) {
+      if (!shown[gas.id]) continue;
+      const { pts, Psat } = vdwCurve(gas, T, PMAX, 300);
+      const d = pts.map(([p, z], i) => `${i ? "L" : "M"}${px(p).toFixed(1)} ${py(Math.min(ZTOP, z)).toFixed(1)}`).join(" ");
+      g += `<path class="curve" d="${d}" style="stroke:${GAS_STYLE[gas.id].color}"/>`;
+      if (Psat && Psat < PMAX) ov += at(px(Psat) + 8, py(0.12), 0, -50, '← 液化して急に下がる（<span class="chem">CO<sub>2</sub></span>）', "color:var(--attr)");
+    }
+    $("#chart").innerHTML = g;
+    $("#chartOv").innerHTML = ov;
+  }
+
+  // ---------- STEP 7: quiz ----------
+  const QUIZ = [
+    { q: "理想気体で「0」とみなすものの組み合わせは？",
+      o: ["分子の体積と分子間力", "分子の質量と分子の速さ", "分子の体積と分子の質量", "分子間力と分子の速さ"], a: 0,
+      e: "理想気体は「分子の体積 ＝ 0」「分子間力 ＝ 0」の気体です。質量や速さはあります。" },
+    { q: "同じ温度・体積・物質量で、分子間力だけを考えると、実在気体の圧力は理想気体とくらべて？",
+      o: ["大きい", "同じ", "小さい"], a: 2,
+      e: "壁にぶつかる直前に、うしろの分子に引きもどされ、ぶつかる勢いが弱まります（STEP 3）。" },
+    { q: "同じ温度・体積・物質量で、分子の体積だけを考えると、実在気体の圧力は理想気体とくらべて？",
+      o: ["大きい", "同じ", "小さい"], a: 0,
+      e: "動ける空間がせまくなり、壁にぶつかる回数がふえます（STEP 4）。" },
+    { q: "実在気体が理想気体に近づく条件は？",
+      o: ["高温・高圧", "高温・低圧", "低温・高圧", "低温・低圧"], a: 1,
+      e: "高温では分子間力の影響が小さく、低圧では分子の体積も分子間力も影響が小さくなります（STEP 5）。" },
+    { q: "低圧で、分子の体積の影響が無視できるのはなぜ？",
+      o: ["分子が動かなくなるから", "気体の体積にくらべて、分子自身の体積がとても小さいから", "圧力が低いと分子が小さく縮むから", "分子間力が強くなるから"], a: 1,
+      e: "分子の大きさは変わりません。低圧では分子どうしの間が広く、分子自身の体積は気体全体の体積にくらべて無視できるほど小さくなります。" },
+    { q: "（発展）0 °C で、Z が 1 より最も大きく下にずれる気体は？", adv: true,
+      o: ['<span class="chem">H<sub>2</sub></span>', '<span class="chem">N<sub>2</sub></span>', '<span class="chem">CH<sub>4</sub></span>', '<span class="chem">CO<sub>2</sub></span>'], a: 3,
+      e: '分子間力の強さを表す <i class="v">a</i> が最も大きいのは <span class="chem">CO<sub>2</sub></span> です（STEP 6 のグラフ）。' },
+  ];
+  const typeset = s => s.replace(/0 °C/g, '<span class="n">0</span> <span class="n">°C</span>').replace(/Z が 1/g, '<i class="v">Z</i> が <span class="n">1</span>');
+  let answered = 0, correct = 0;
+  function renderQuiz() {
+    answered = 0; correct = 0;
+    $("#quiz").innerHTML = QUIZ.map((x, i) => `
+      <div class="q" data-q="${i}">
+        <div class="qn">問 ${i + 1}</div>
+        <p class="qt">${typeset(x.q)}</p>
+        <div class="opts">${x.o.map((o, j) => `<button type="button" data-o="${j}">${"アイウエ"[j]}　${o}</button>`).join("")}</div>
+        <p class="fb" hidden></p>
+      </div>`).join("");
+    updateScore();
+  }
+  function updateScore() { $("#score").textContent = `${correct} / ${QUIZ.length}`; }
+  $("#quiz").addEventListener("click", e => {
+    const b = e.target.closest("button[data-o]"); if (!b) return;
+    const card = b.closest(".q"), i = Number(card.dataset.q), j = Number(b.dataset.o), x = QUIZ[i];
+    $$("button", card).forEach((btn, k) => { btn.disabled = true; if (k === x.a) btn.classList.add("right"); });
+    if (j !== x.a) b.classList.add("wrong"); else correct++;
+    answered++;
+    const fb = $(".fb", card);
+    fb.hidden = false;
+    fb.innerHTML = `<b style="color:var(${j === x.a ? "--vol" : "--attr"})">${j === x.a ? "正解" : "正解は " + "アイウエ"[x.a]}</b>　${x.e}`;
+    updateScore();
+  });
+  $("#retry").addEventListener("click", renderQuiz);
+  renderQuiz();
+
+  // ---------- animation loop ----------
+  let last = performance.now(), paused = false;
+  document.addEventListener("visibilitychange", () => { paused = document.hidden; last = performance.now(); });
+  function frame(now) {
+    const dt = Math.min(1 / 30, (now - last) / 1000);
+    last = now;
+    if (!paused) {
+      if (current === 5) {
+        const L = s5.W;
+        if (Math.abs(L - targetL) > 0.5) {
+          const nl = L + (targetL - L) * 0.08;
+          s5.setBox(nl, nl);
+          settle = 2;
+        }
+        const big = s5.W + 2 * s5.R > c5.look.view;
+        $("#view5").textContent = big ? "容器の一部を表示" : "";
+      }
+      for (const id of STEP_VIEWS[current] || []) { views[id].tick(dt); views[id].draw(); }
+      if (current === 5) {
+        needleX += ((zShown == null ? zx(1) : zx(zShown)) - needleX) * 0.08;
+        $("#zneedle")?.setAttribute("transform", `translate(${needleX.toFixed(1)} 0)`);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  drawChart();
+  const m = location.hash.match(/^#s(\d)$/);
+  go(m ? Number(m[1]) : 1, false);
+  requestAnimationFrame(frame);
+})();
+</script>
+<!--@ARTIFACT-END-->
+</body>
+</html>
