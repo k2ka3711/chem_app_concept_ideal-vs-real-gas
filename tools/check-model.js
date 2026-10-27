@@ -18,10 +18,14 @@ const checks = [
   ["STEP 5 low T, high P: Z << 1", z({ ...real, W: 240, H: 240, kT: 0.43 }), v => v < 0.5],
   ["STEP 5 high T, high P: Z > 1", z({ ...real, W: 185, H: 185, kT: 3 }), v => v > 1.3],
 ];
+// STEP 6: under the same weight, the piston heights in the app give the ideal gas's pressure
+const pRatio = (o, H) => z({ ...o, W: 400, H }, 8000) * 400 / H;
+checks.push(["STEP 6 attraction only at H = 345: same pressure", pRatio({ N: 50, R: 3, attract: true, eps: 0.5, range: 30 }, 345), v => Math.abs(v - 1) < 0.03]);
+checks.push(["STEP 6 molecular volume only at H = 470: same pressure", pRatio({ N: 50, R: 10 }, 470), v => Math.abs(v - 1) < 0.03]);
 const co2 = GASES.find(g => g.id === "CO2"), h2 = GASES.find(g => g.id === "H2");
 const minZ = g => Math.min(...vdwCurve(g, 273, 1e8, 200).pts.map(p => p[1]));
-checks.push(["STEP 6 H2 at 273 K stays above 1", minZ(h2), v => v >= 0.999]);
-checks.push(["STEP 6 CO2 at 273 K dips far below 1", minZ(co2), v => v < 0.3]);
+checks.push(["STEP 7 H2 at 273 K stays above 1", minZ(h2), v => v >= 0.999]);
+checks.push(["STEP 7 CO2 at 273 K dips far below 1", minZ(co2), v => v < 0.3]);
 
 let ok = true;
 for (const [name, v, pass] of checks) {

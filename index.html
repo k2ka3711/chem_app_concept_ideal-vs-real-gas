@@ -271,6 +271,13 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
 .foot-nav .btn:disabled { visibility: hidden; }
 .colophon { margin-top: 24px; font-size: 13px; color: var(--muted); }
 .colophon p { margin: 0; }
+.readout { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+.readout b { font-size: 20px; font-weight: 400; margin-left: 4px; font-variant-numeric: tabular-nums; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 1px 10px; cursor: pointer; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.seg button[aria-pressed="true"] { border-color: var(--ideal); background: var(--ideal-soft); }
+.seg button:disabled { cursor: default; opacity: 0.5; }
+.ans { display: flex; flex-direction: column; gap: 6px; }
 .ctl-row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -286,8 +293,9 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
       <button type="button" data-go="3"><span class="k">3</span><span class="t">分子間力</span></button>
       <button type="button" data-go="4"><span class="k">4</span><span class="t">分子の体積</span></button>
       <button type="button" data-go="5"><span class="k">5</span><span class="t">近づく条件</span></button>
-      <button type="button" data-go="6"><span class="k">6</span><span class="t">発展</span></button>
-      <button type="button" data-go="7"><span class="k">7</span><span class="t">確認</span></button>
+      <button type="button" data-go="6"><span class="k">6</span><span class="t">同じ圧力</span></button>
+      <button type="button" data-go="7"><span class="k">7</span><span class="t">発展</span></button>
+      <button type="button" data-go="8"><span class="k">8</span><span class="t">確認</span></button>
     </nav>
   </div>
 </header>
@@ -509,8 +517,84 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
   <!-- STEP 6 -->
   <section class="step" data-step="6" aria-labelledby="h6" hidden>
     <div class="head">
-      <div class="eyebrow">STEP 6<span class="adv">発展</span></div>
-      <h2 id="h6">ファンデルワールスの状態方程式</h2>
+      <div class="eyebrow">STEP 6　見方を変える</div>
+      <h2 id="h6">同じ圧力なら、体積はどうなる？</h2>
+      <p class="lead">ピストンに同じおもりをのせて、圧力をそろえます（温度・分子の数も同じ）。</p>
+    </div>
+    <div class="bench wide">
+      <div class="pair">
+        <div class="fig">
+          <div class="fig-label"><span class="dot ideal"></span>理想気体</div>
+          <canvas class="box" id="c6a" aria-label="同じおもりをのせたピストン付きの容器に入った理想気体"></canvas>
+          <div class="readout"><span>体積 <b class="n">100</b></span><span>圧力 <b class="n">100</b></span></div>
+        </div>
+        <div class="fig">
+          <div class="fig-label"><span class="dot attr" id="d6"></span><span id="l6">分子間力だけ</span></div>
+          <canvas class="box" id="c6b" aria-label="同じおもりをのせたピストン付きの容器に入った実在気体。答えるとピストンが動く"></canvas>
+          <div class="readout"><span>体積 <b class="n" id="v6">?</b></span><span>圧力 <b class="n" id="p6">?</b></span></div>
+          <div class="seg" id="seg6" role="group" aria-label="実在気体の種類">
+            <button type="button" data-mode="att" aria-pressed="true"><span class="dot attr"></span>分子間力だけ</button>
+            <button type="button" data-mode="vol" aria-pressed="false"><span class="dot vol"></span>分子の体積だけ</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="card predict" id="q6a" data-answer="down" data-mode="att">
+          <p>問1　分子間力だけのとき、体積は理想気体とくらべて…</p>
+          <div class="choices">
+            <button type="button" data-pick="up">大きい</button>
+            <button type="button" data-pick="same">同じ</button>
+            <button type="button" data-pick="down">小さい</button>
+          </div>
+          <div class="ans" hidden>
+            <p class="verdict"></p>
+            <ul class="why">
+              <li><span>同じ体積なら、圧力が小さい（STEP 3）</span></li>
+              <li><span>おもりにおされて、ピストンが下がる</span></li>
+              <li><span>圧力がおもりとつり合うところで止まる</span></li>
+              <li><span class="res down">体積が小さくなる</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="card predict" id="q6b" data-answer="up" data-mode="vol">
+          <p>問2　分子の体積だけのとき、体積は理想気体とくらべて…</p>
+          <div class="choices">
+            <button type="button" data-pick="up">大きい</button>
+            <button type="button" data-pick="same">同じ</button>
+            <button type="button" data-pick="down">小さい</button>
+          </div>
+          <div class="ans" hidden>
+            <p class="verdict"></p>
+            <ul class="why">
+              <li><span>同じ体積なら、圧力が大きい（STEP 4）</span></li>
+              <li><span>ピストンをおし上げる</span></li>
+              <li><span>圧力がおもりとつり合うところで止まる</span></li>
+              <li><span class="res up">体積が大きくなる</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" id="sum6" hidden>
+          <h3>まとめ（温度・圧力・物質量が同じとき）</h3>
+          <div class="big-eq eq"><i class="v">V</i><sub>実在</sub><span class="op">=</span><i class="v">Z</i><span class="op">×</span><i class="v">V</i><sub>理想</sub></div>
+          <p class="note"><span class="eq"><i class="v">Z</i><span class="op">=</span><span class="frac"><span><i class="v">PV</i></span><span><i class="v">nRT</i></span></span></span> で <i class="v">P</i>・<i class="v">T</i>・<i class="v">n</i> が同じなら、体積は <i class="v">Z</i> に比例します。<br><i class="v">Z</i> &lt; <span class="n">1</span> なら小さく、<i class="v">Z</i> &gt; <span class="n">1</span> なら大きい。</p>
+        </div>
+        <div class="card predict" id="q6c">
+          <p>問3　ある条件で <span class="eq"><i class="v">Z</i><span class="op">=</span><span class="n">0.80</span></span> でした。同じ温度・圧力・物質量の理想気体の体積が <span class="n">10</span>&nbsp;<span class="n">L</span> のとき、この実在気体の体積は？</p>
+          <div class="choices">
+            <button type="button" data-calc="0"><span class="n">8.0 L</span></button>
+            <button type="button" data-calc="1"><span class="n">10 L</span></button>
+            <button type="button" data-calc="2"><span class="n">12.5 L</span></button>
+          </div>
+          <p class="note" id="q6cfb" hidden></p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- STEP 7 -->
+  <section class="step" data-step="7" aria-labelledby="h7" hidden>
+    <div class="head">
+      <div class="eyebrow">STEP 7<span class="adv">発展</span></div>
+      <h2 id="h7">ファンデルワールスの状態方程式</h2>
       <p class="lead">2つの効果を、理想気体の式に組みこみます。</p>
     </div>
     <div class="card">
@@ -567,11 +651,11 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
     </div>
   </section>
 
-  <!-- STEP 7 -->
-  <section class="step" data-step="7" aria-labelledby="h7" hidden>
+  <!-- STEP 8 -->
+  <section class="step" data-step="8" aria-labelledby="h8" hidden>
     <div class="head">
-      <div class="eyebrow">STEP 7　確認</div>
-      <h2 id="h7">たしかめよう</h2>
+      <div class="eyebrow">STEP 8　確認</div>
+      <h2 id="h8">たしかめよう</h2>
       <p class="lead">答えを選ぶと、すぐに解説が出ます。</p>
     </div>
     <div class="quiz" id="quiz"></div>
@@ -583,7 +667,7 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
     <button type="button" class="btn primary" id="next">次へ →</button>
   </nav>
   <div class="colophon">
-    <p>分子モデルは平面（2次元）のシミュレーションです。圧力と <i class="v">Z</i> はモデルの分子の運動から計算しています。STEP 6 のグラフは、ファンデルワールスの式による計算値です（<i class="v">a</i>, <i class="v">b</i> は CRC Handbook of Chemistry and Physics の値）。</p>
+    <p>分子モデルは平面（2次元）のシミュレーションです。圧力と <i class="v">Z</i> はモデルの分子の運動から計算しています。STEP 7 のグラフは、ファンデルワールスの式による計算値です（<i class="v">a</i>, <i class="v">b</i> は CRC Handbook of Chemistry and Physics の値）。</p>
   </div>
 </main>
 </div>
@@ -873,14 +957,21 @@ function vdwCurve(g, T, Pmax, n = 240) {
       const span = look.view || (sim.W + 2 * Rv);
       const s = (W - 2 * pad) / span;
       const boxW = (sim.W + 2 * Rv) * s, boxH = (sim.H + 2 * Rv) * s;
-      const ox = (W - boxW) / 2, oy = (W - boxH) / 2;
+      const ox = (W - boxW) / 2, oy = look.piston ? W - pad - 2 - boxH : (W - boxH) / 2;
       const X = (x) => ox + (x + Rv) * s, Y = (y) => oy + (y + Rv) * s;
       const r = Math.max(look.minPx || 0, Rv * s);
       const col = COL[look.color];
       // wall
       ctx.lineWidth = 3; ctx.strokeStyle = COL.wall;
-      ctx.strokeRect(ox - 1.5, oy - 1.5, boxW + 3, boxH + 3);
-      if (look.view) { // fade the edge so a cut-off box reads as "part of a bigger box"
+      if (look.piston) { // open cylinder + piston + the same weight on every piston
+        const top = pad + 4, bot = oy + boxH + 1.5;
+        ctx.beginPath(); ctx.moveTo(ox - 1.5, top); ctx.lineTo(ox - 1.5, bot); ctx.lineTo(ox + boxW + 1.5, bot); ctx.lineTo(ox + boxW + 1.5, top); ctx.stroke();
+        const ph = Math.max(6, 10 * s);
+        ctx.fillStyle = COL.wall; ctx.fillRect(ox, oy - ph, boxW, ph);
+        const ww = boxW * 0.36, wh = Math.max(14, 34 * s);
+        ctx.fillStyle = COL.muted; ctx.fillRect(ox + (boxW - ww) / 2, oy - ph - wh, ww, wh);
+      } else ctx.strokeRect(ox - 1.5, oy - 1.5, boxW + 3, boxH + 3);
+      if (look.view && !look.piston) { // fade the edge so a cut-off box reads as "part of a bigger box"
         const g = (dir) => { const gr = ctx.createLinearGradient(...dir); gr.addColorStop(0, rgba(COL.surface, 1)); gr.addColorStop(1, rgba(COL.surface, 0)); return gr; };
         const f = 18;
         ctx.fillStyle = g([0, 0, f, 0]); ctx.fillRect(0, 0, f, W);
@@ -961,10 +1052,19 @@ function vdwCurve(g, T, Pmax, n = 240) {
     c4b: new SimView("c4b", { N: 50, W: B, H: B, R: 10, seed: 17 }, { color: "vol", excl: true, maxBlocks: 60 }),
     c5: new SimView("c5", { N: 60, W: 500, H: 500, R: 8, attract: true, eps: 1, range: 16, seed: 18 }, { color: "real", lines: true, view: 540, maxBlocks: 16 }),
   };
+  // STEP 6: pistons with the same weight. Heights where the pressure equals the ideal gas's
+  // (found with the same model: tools/check-model.js checks them)
+  const H6 = { att: 345, vol: 470 };
+  views.c6a = new SimView("c6a", { N: 50, W: B, H: B, R: 0, seed: 21 }, { color: "ideal", Rv: 3.5, minPx: 2, view: 600, piston: true });
+  views.c6att = new SimView("c6b", { N: 50, W: B, H: B, R: 3, attract: true, eps: 0.5, range: 30, seed: 22 }, { color: "attr", Rv: 3.5, minPx: 2, lines: true, view: 600, piston: true, maxBlocks: 30 });
+  views.c6vol = new SimView("c6b", { N: 50, W: B, H: B, R: 10, seed: 23 }, { color: "vol", view: 600, piston: true, maxBlocks: 30 });
+  let mode6 = "att";
+  const target6 = { att: B, vol: B }, settle6 = { att: 0, vol: 0 };
   const STEP_VIEWS = { 1: ["c1"], 2: ["c2a", "c2b"], 3: ["c3a", "c3b"], 4: ["c4a", "c4b"], 5: ["c5"] };
+  const activeViews = n => n === 6 ? ["c6a", mode6 === "att" ? "c6att" : "c6vol"] : (STEP_VIEWS[n] || []);
 
   // ---------- navigation ----------
-  const TOTAL = 7;
+  const TOTAL = 8;
   let current = 1;
   const visited = new Set([1]);
   function go(n, push = true) {
@@ -980,8 +1080,8 @@ function vdwCurve(g, T, Pmax, n = 240) {
     $("#prev").disabled = n === 1;
     $("#next").disabled = n === TOTAL;
     $("#steps button[aria-current]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
-    for (const id of STEP_VIEWS[n] || []) views[id].resize();
-    if (n === 6) drawChart();
+    for (const id of activeViews(n)) views[id].resize();
+    if (n === 7) drawChart();
     if (push && location.hash !== "#s" + n) history.replaceState(null, "", "#s" + n);
     window.scrollTo({ top: 0 });
   }
@@ -994,7 +1094,7 @@ function vdwCurve(g, T, Pmax, n = 240) {
     if (e.key === "ArrowLeft") go(current - 1);
   });
   window.addEventListener("hashchange", () => { const m = location.hash.match(/^#s(\d)$/); if (m) go(Number(m[1]), false); });
-  window.addEventListener("resize", () => { for (const id of STEP_VIEWS[current] || []) views[id].resize(); });
+  window.addEventListener("resize", () => { for (const id of activeViews(current)) views[id].resize(); });
 
   // ---------- STEP 2 ----------
   $("#t2lines").addEventListener("change", e => { views.c2b.look.lines = e.target.checked; });
@@ -1119,7 +1219,56 @@ function vdwCurve(g, T, Pmax, n = 240) {
   };
   updateLabels5();
 
-  // ---------- STEP 6: van der Waals ----------
+  // ---------- STEP 6: same pressure ----------
+  const answered6 = { att: false, vol: false };
+  const pressure6 = { att: null, vol: null };
+  function setMode6(m) {
+    mode6 = m;
+    $$("#seg6 button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+    $("#l6").textContent = m === "att" ? "分子間力だけ" : "分子の体積だけ";
+    $("#d6").className = "dot " + (m === "att" ? "attr" : "vol");
+    views["c6" + m].resize();
+    updateReadout6();
+  }
+  function updateReadout6() {
+    const v = views["c6" + mode6].sim;
+    if (!answered6[mode6]) { $("#v6").textContent = "?"; $("#p6").textContent = "?"; return; }
+    $("#v6").textContent = Math.round(v.H / B * 100);
+    $("#p6").textContent = pressure6[mode6] == null ? "…" : pressure6[mode6];
+  }
+  for (const m of ["att", "vol"]) {
+    views["c6" + m].onBlock = (view) => {
+      if (!answered6[m]) return;
+      if (settle6[m] > 0) { settle6[m]--; if (settle6[m] === 0) view.resetMeasure(); pressure6[m] = null; return; }
+      const z = view.z();
+      if (z == null || view.blocks.length < 4) return;
+      pressure6[m] = Math.round(z * B / view.sim.H * 100); // relative to the ideal gas under the same weight
+    };
+  }
+  $("#seg6").addEventListener("click", e => { const b = e.target.closest("button[data-mode]"); if (b) setMode6(b.dataset.mode); });
+  for (const id of ["q6a", "q6b"]) {
+    const card = $("#" + id), m = card.dataset.mode;
+    card.addEventListener("click", e => {
+      const b = e.target.closest("button[data-pick]"); if (!b) return;
+      $$("button[data-pick]", card).forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      const ok = b.dataset.pick === card.dataset.answer, vd = $(".verdict", card);
+      vd.textContent = ok ? "予想どおり！" : "じつは…";
+      vd.className = "verdict " + (ok ? "ok" : "ng");
+      $(".ans", card).hidden = false;
+      answered6[m] = true; target6[m] = H6[m];
+      setMode6(m);
+      if (answered6.att && answered6.vol) $("#sum6").hidden = false;
+    });
+  }
+  $("#q6c").addEventListener("click", e => {
+    const b = e.target.closest("button[data-calc]"); if (!b) return;
+    $$("button[data-calc]", $("#q6c")).forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    const ok = b.dataset.calc === "0", fb = $("#q6cfb");
+    fb.hidden = false;
+    fb.innerHTML = `<b style="color:var(${ok ? "--vol" : "--attr"})">${ok ? "正解" : "正解は 8.0 L"}</b>　<span class="eq"><i class="v">V</i><sub>実在</sub><span class="op">=</span><span class="n">0.80</span><span class="op">×</span><span class="n">10</span>&nbsp;<span class="n">L</span><span class="op">=</span><span class="n">8.0</span>&nbsp;<span class="n">L</span></span>（<i class="v">Z</i> &lt; <span class="n">1</span> なので小さい）`.replace("正解は 8.0 L", '正解は <span class="n">8.0 L</span>');
+  });
+
+  // ---------- STEP 7: van der Waals ----------
   function renderFormula() {
     const useB = $("#fb").checked, useA = $("#fa").checked;
     const V = '<i class="v">V</i>';
@@ -1184,7 +1333,7 @@ function vdwCurve(g, T, Pmax, n = 240) {
     $("#chartOv").innerHTML = ov;
   }
 
-  // ---------- STEP 7: quiz ----------
+  // ---------- STEP 8: quiz ----------
   const QUIZ = [
     { q: "理想気体で「0」とみなすものの組み合わせは？",
       o: ["分子の体積と分子間力", "分子の質量と分子の速さ", "分子の体積と分子の質量", "分子間力と分子の速さ"], a: 0,
@@ -1203,7 +1352,7 @@ function vdwCurve(g, T, Pmax, n = 240) {
       e: "分子の大きさは変わりません。低圧では分子どうしの間が広く、分子自身の体積は気体全体の体積にくらべて無視できるほど小さくなります。" },
     { q: "（発展）0 °C で、Z が 1 より最も大きく下にずれる気体は？", adv: true,
       o: ['<span class="chem">H<sub>2</sub></span>', '<span class="chem">N<sub>2</sub></span>', '<span class="chem">CH<sub>4</sub></span>', '<span class="chem">CO<sub>2</sub></span>'], a: 3,
-      e: '分子間力の強さを表す <i class="v">a</i> が最も大きいのは <span class="chem">CO<sub>2</sub></span> です（STEP 6 のグラフ）。' },
+      e: '分子間力の強さを表す <i class="v">a</i> が最も大きいのは <span class="chem">CO<sub>2</sub></span> です（STEP 7 のグラフ）。' },
   ];
   const typeset = s => s.replace(/0 °C/g, '<span class="n">0</span> <span class="n">°C</span>').replace(/Z が 1/g, '<i class="v">Z</i> が <span class="n">1</span>');
   let answered = 0, correct = 0;
@@ -1250,7 +1399,15 @@ function vdwCurve(g, T, Pmax, n = 240) {
         const big = s5.W + 2 * s5.R > c5.look.view;
         $("#view5").textContent = big ? "容器の一部を表示" : "";
       }
-      for (const id of STEP_VIEWS[current] || []) { views[id].tick(dt); views[id].draw(); }
+      if (current === 6) {
+        for (const m of ["att", "vol"]) {
+          const sv = views["c6" + m].sim;
+          const d = target6[m] - sv.H;
+          if (d !== 0) { sv.setBox(B, Math.abs(d) < 0.3 ? target6[m] : sv.H + d * 0.04); settle6[m] = 3; }
+        }
+        updateReadout6();
+      }
+      for (const id of activeViews(current)) { views[id].tick(dt); views[id].draw(); }
       if (current === 5) {
         needleX += ((zShown == null ? zx(1) : zx(zShown)) - needleX) * 0.08;
         $("#zneedle")?.setAttribute("transform", `translate(${needleX.toFixed(1)} 0)`);
