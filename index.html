@@ -279,6 +279,18 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
 .seg button:disabled { cursor: default; opacity: 0.5; }
 .ans { display: flex; flex-direction: column; gap: 6px; }
 .ctl-row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+footer.site {
+  text-align: center; font-size: 13px; color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-block: 24px 36px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+footer.site .version {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 11px;
+  background: var(--line); color: var(--ink);
+  padding: 2px 6px; border-radius: 4px; margin-left: 6px; white-space: nowrap;
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -670,6 +682,10 @@ table.ab td { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
     <p>分子モデルは平面（2次元）のシミュレーションです。圧力と <i class="v">Z</i> はモデルの分子の運動から計算しています。STEP 7 のグラフは、ファンデルワールスの式による計算値です（<i class="v">a</i>, <i class="v">b</i> は CRC Handbook of Chemistry and Physics の値）。</p>
   </div>
 </main>
+<footer class="site">
+  理想気体と実在気体 — 高等学校化学「理想気体と実在気体」学習アプリ
+  <span class="version">ver.1.0.0</span>
+</footer>
 </div>
 
 <script>
